@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:17-alpine
+    env_file: ./backend/.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - users-net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "localhost", "-U", "users"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+  
+  web:
+    build: ./backend
+    env_file: ./backend/.env
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - users-net
+    depends_on:
+      db:
+        condition: service_healthy
+  
+volumes:
+  pgdata:
+
+networks:
+  users-net:
+    driver: bridge

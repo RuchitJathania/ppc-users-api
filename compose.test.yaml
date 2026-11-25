@@ -1,0 +1,37 @@
+name: ppc-users-tests
+
+services:
+  test-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: users_test
+      POSTGRES_PASSWORD: test-only
+      POSTGRES_DB: users_test
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks:
+      - test-net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "localhost", "-U", "users_test", "-d", "users_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+  tests:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://users_test:test-only@test-db:5432/users_test
+      ALLOW_TEST_DB_RESET: "1"
+    networks:
+      - test-net
+    depends_on:
+      test-db:
+        condition: service_healthy
+    # command: ["python", "-m", "pytest", "-v", "./tests/test_api.py"]
+    command: ["python", "-m", "pytest", "-v", "tests"]
+
+networks:
+  test-net:
+    driver: bridge
+    internal: true
