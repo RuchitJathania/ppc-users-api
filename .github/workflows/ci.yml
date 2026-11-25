@@ -1,0 +1,37 @@
+name: API integration tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Download repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build and run integration tests
+        run: >
+          docker compose -f compose.test.yaml
+          up --build --force-recreate
+          --abort-on-container-exit
+          --exit-code-from tests
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose -f compose.test.yaml logs
+
+      - name: Clean up
+        if: always()
+        run: docker compose -f compose.test.yaml down --volumes
