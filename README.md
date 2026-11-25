@@ -416,3 +416,13 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 `requirements-test.txt` should include `-r requirements.txt`, pytest, and httpx2.
 The runtime image does not need testing packages. If your requirements file also
 references a constraints file, copy that file before the corresponding pip command.
+
+## GitHub Actions CI/CD
+
+The workflow in `.github/workflows/ci.yml` runs on pushes to `main`, pull requests targeting `main`, or manual execution.
+
+It builds the test image, starts an isolated PostgreSQL database, runs integration tests through `compose.test.yaml`, and cleans up afterward. The normal `.env` and application database are not used.
+
+View results and failure logs in the repository’s **Actions** tab.
+
+This implements **CI (build and test)**. Automated deployment is not configured.
